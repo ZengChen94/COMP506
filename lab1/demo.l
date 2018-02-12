@@ -7,7 +7,7 @@
 	#endif
 	#include "demo.tab.h"
 	#include "strings.h"
-	int CTRL_M = 0; /* count number of ^M’s seen */
+	int CTRL_M = 0; /* count number of ^M's seen */
 %}
 
 %%
