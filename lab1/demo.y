@@ -39,23 +39,32 @@
 %token SEMI_COLON
 %token COMMA
 %token EQUALS
-%token LBRACKET
-%token RBRACKET
-%token LBRACE
-%token RBRACE
-%token LPAREN
-%token RPAREN
+%token LFBRACKET
+%token RTBRACKET
+%token LFBRACE
+%token RTBRACE
+%token LFPAREN
+%token RTPAREN
 
 %token NUMBER
 %token NAME
 %token CHARCONST
-%token ENDOFFILE
 
 %start Grammar
 %%
 Grammar		: Procedure;
 
-Procedure	: PROCEDURE NAME LBRACKET Decls Stmts RBRACKET;
+Procedure	: PROCEDURE NAME LFBRACKET Decls Stmts RTBRACKET
+			| PROCEDURE NAME LFBRACKET Decls Stmts {
+				syntax_error += 1;
+				fprintf(stderr, "Parser: missing '}' around line %d.\n", yylineno);
+				yyclearin; 
+			}
+			| PROCEDURE NAME LFBRACKET Decls Stmts RTBRACKET RTBRACKET{
+				syntax_error += 1;
+				fprintf(stderr, "Parser: redundant '}' around line %d.\n", yylineno);
+				yyclearin; 
+			};
 
 Decls		: Decls Decl SEMI_COLON
 			| Decl SEMI_COLON;
@@ -69,7 +78,7 @@ SpecList	: SpecList COMMA Spec
 			| Spec;
 
 Spec		: NAME
-			| NAME LBRACE Bounds RBRACE;
+			| NAME LFBRACE Bounds RTBRACE;
 
 Bounds		: Bounds COMMA Bound
 			| Bound;
@@ -80,21 +89,83 @@ Stmts		: Stmts Stmt
 			| Stmt;
 
 Stmt		: Reference EQUALS Expr SEMI_COLON
-			| LBRACKET Stmts RBRACKET
-			| WHILE LPAREN Bool RPAREN LBRACKET Stmts RBRACKET
-			| FOR NAME EQUALS Expr TO Expr BY Expr LBRACKET Stmts RBRACKET
-			| IF LPAREN Bool RPAREN THEN Stmt
-			| IF LPAREN Bool RPAREN THEN WithElse ELSE Stmt
+			| LFBRACKET Stmts RTBRACKET
+			| LFBRACKET RTBRACKET {
+				syntax_error += 1;
+				fprintf(stderr, "Parser: no contents between '{' and '}' around line %d.\n", yylineno);
+				yyclearin;
+			}
+			| SEMI_COLON {
+				syntax_error += 1;
+				fprintf(stderr, "Parser: no contents before ';' around line %d.\n", yylineno);
+				yyclearin;
+			}
+			| WHILE LFPAREN Bool RTPAREN LFBRACKET Stmts RTBRACKET
+			| FOR NAME EQUALS Expr TO Expr BY Expr LFBRACKET Stmts RTBRACKET
+			| IF LFPAREN Bool RTPAREN THEN Stmt
+			| IF LFPAREN Bool RTPAREN THEN WithElse ELSE Stmt
 			| READ Reference SEMI_COLON
-			| WRITE Expr SEMI_COLON;
+			| WRITE Expr SEMI_COLON
+			| Expr PLUS EQUALS Term {
+				syntax_error += 1;
+				fprintf(stderr, "Parser: no rule for '+=' around line %d.\n", yylineno);
+				yyclearin; 
+			}
+			| Expr MINUS EQUALS Term {
+				syntax_error -= 1;
+				fprintf(stderr, "Parser: no rule for '-=' around line %d.\n", yylineno);
+				yyclearin; 
+			}
+			| Term MULT EQUALS Factor {
+				syntax_error += 1;
+				fprintf(stderr, "Parser: no rule for '*=' around line %d.\n", yylineno);
+				yyclearin; 
+			}
+			| Term DIV EQUALS Factor {
+				syntax_error += 1;
+				fprintf(stderr, "Parser: no rule for '/=' around line %d.\n", yylineno);
+				yyclearin; 
+			}
+			| error SEMI_COLON;
 
-WithElse	: IF LPAREN Bool RPAREN THEN WithElse ELSE WithElse
+WithElse	: IF LFPAREN Bool RTPAREN THEN WithElse ELSE WithElse
 			| Reference EQUALS Expr SEMI_COLON
-			| LBRACKET Stmts RBRACKET
-			| WHILE LPAREN Bool RPAREN LBRACKET Stmts RBRACKET
-			| FOR NAME EQUALS Expr TO Expr BY Expr LBRACKET Stmts RBRACKET
+			| LFBRACKET Stmts RTBRACKET
+			| LFBRACKET RTBRACKET {
+				syntax_error += 1;
+				fprintf(stderr, "Parser: no contents between '{' and '}' around line %d.\n", yylineno);
+				yyclearin;
+			}
+			| SEMI_COLON {
+				syntax_error += 1;
+				fprintf(stderr, "Parser: no contents before ';' around line %d.\n", yylineno);
+				yyclearin;
+			}
+			| WHILE LFPAREN Bool RTPAREN LFBRACKET Stmts RTBRACKET
+			| FOR NAME EQUALS Expr TO Expr BY Expr LFBRACKET Stmts RTBRACKET
 			| READ Reference SEMI_COLON
-			| WRITE Expr SEMI_COLON;
+			| WRITE Expr SEMI_COLON
+			| Expr PLUS EQUALS Term {
+				syntax_error += 1;
+				fprintf(stderr, "Parser: no rule for '+=' around line %d.\n", yylineno);
+				yyclearin; 
+			}
+			| Expr MINUS EQUALS Term {
+				syntax_error -= 1;
+				fprintf(stderr, "Parser: no rule for '-=' around line %d.\n", yylineno);
+				yyclearin; 
+			}
+			| Term MULT EQUALS Factor {
+				syntax_error += 1;
+				fprintf(stderr, "Parser: no rule for '*=' around line %d.\n", yylineno);
+				yyclearin; 
+			}
+			| Term DIV EQUALS Factor {
+				syntax_error += 1;
+				fprintf(stderr, "Parser: no rule for '/=' around line %d.\n", yylineno);
+				yyclearin; 
+			}
+			| error SEMI_COLON;
 
 Bool		: NOT OrTerm
 			| OrTerm;
@@ -121,13 +192,13 @@ Term		: Term MULT Factor
 			| Term DIV Factor
 			| Factor;
 
-Factor		: LPAREN Expr RPAREN
+Factor		: LFPAREN Expr RTPAREN
 			| Reference
 			| NUMBER
 			| CHARCONST;
 
 Reference	: NAME
-			| NAME LBRACE Exprs RBRACE;
+			| NAME LFBRACE Exprs RTBRACE;
 
 Exprs		: Expr COMMA Exprs
 			| Expr;
@@ -136,6 +207,7 @@ Exprs		: Expr COMMA Exprs
 int yywrap() { return 1; } /* for flex: only one input file */
 
 void yyerror(char *s) {
-	syntax_error = 1;
+	syntax_error += 1;
 	fprintf(stderr, "Parser: '%s' around line %d.\n", s, yylineno);
+	yyclearin; 
 }

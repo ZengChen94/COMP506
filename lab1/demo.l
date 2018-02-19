@@ -42,12 +42,12 @@
 ";"						{return SEMI_COLON;}
 ","						{return COMMA;}
 "="						{return EQUALS;}
-"{"						{return LBRACKET;}
-"}"						{return RBRACKET;}
-"["						{return LBRACE;}
-"]"						{return RBRACE;}
-"("						{return LPAREN;}
-")"						{return RPAREN;}
+"{"						{return LFBRACKET;}
+"}"						{return RTBRACKET;}
+"["						{return LFBRACE;}
+"]"						{return RTBRACE;}
+"("						{return LFPAREN;}
+")"						{return RTPAREN;}
 
 [0-9]+					{return NUMBER;}
 [A-Za-z][A-Za-z0-9_]*	{return NAME;}

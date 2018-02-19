@@ -1,9 +1,0 @@
-Use `make all` to complie files including demo.l, demo.y, driver.c, demo.tab.c, and lex.yy.c into executable file.
-
-Use `make clean` to clean all compiled files.
-
-Use `demo [-h] [filename]` or `demo [filename]` to execute demo files.
-
-The scanner and paser has been tested under all testcases in folder `./demo/lab1` and pass them all.
-
-The `test1.demo` and `test2.demo` are self-written test programs in DEMO accepted by the scanner and paser.
